@@ -79,8 +79,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Color E
 </head>
 <body>
 
-<div id="upload-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;">
-  <p style="font-size:16px;color:#6e6e73;">Loading...</p>
+<div id="upload-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;">
+  <div style="background:#fff;border-radius:16px;padding:2.5rem 2rem;max-width:420px;width:100%;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+    <h1 style="font-size:22px;font-weight:600;color:#1c1c1e;margin-bottom:0.5rem;">Earnings Categorizer</h1>
+    <p style="color:#6e6e73;font-size:15px;margin-bottom:2rem;line-height:1.5;">Start fresh or resume from a previously saved progress file.</p>
+    <button onclick="startFresh()" style="display:block;width:100%;background:#007aff;color:#fff;border:none;border-radius:10px;padding:0.8rem;font-size:16px;font-weight:500;cursor:pointer;margin-bottom:0.75rem;">Start Fresh</button>
+    <label style="display:block;width:100%;background:#fff;color:#555;border:1.5px solid #d1d1d6;border-radius:10px;padding:0.75rem;font-size:15px;font-weight:500;cursor:pointer;box-sizing:border-box;" for="resume-input">Resume from Saved File</label>
+    <input type="file" id="resume-input" accept=".xlsx,.xls" style="display:none;">
+    <p style="margin-top:0.75rem;font-size:13px;color:#aaa;" id="resume-file-name"></p>
+  </div>
 </div>
 
 <div id="app-screen">
@@ -155,10 +162,24 @@ function b64ToUint8Array(b64) {
   return arr;
 }
 
-window.addEventListener('load', function() {
+function startFresh() {
   const data = b64ToUint8Array(PRELOADED_XLSX_B64);
   workbook = XLSX.read(data, { type: 'array', cellDates: true });
   loadEarnings();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('resume-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('resume-file-name').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      workbook = XLSX.read(evt.target.result, { type: 'array', cellDates: true });
+      loadEarnings();
+    };
+    reader.readAsArrayBuffer(file);
+  });
 });
 
 function loadEarnings() {
